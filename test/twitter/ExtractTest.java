@@ -34,7 +34,7 @@ public class ExtractTest {
 		
 	}
 
-	@Test public void testGetTimespanTwoTweets() 
+	  @Test public void testGetTimespanTwoTweets() 
 	{ Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1, tweet2)); 
 	
 	
@@ -64,9 +64,7 @@ public class ExtractTest {
 	      assertEquals("mentioned user should be in the set", expectedMentions, mentionedUsers); 
 	      
 	  }
-	  
-	  
-	    @Test public void testGetMentionedUsersMultipleMentions() {
+	  @Test public void testGetMentionedUsersMultipleMentions() {
 	    	
 	    	
 	Tweet tweet1 = new Tweet(4, "alice", "Hi @bob!", Instant.parse("2016-02-17T13:00:00Z")); 
@@ -77,6 +75,4 @@ public class ExtractTest {
 	
 	
 	}
-	
-   
 }

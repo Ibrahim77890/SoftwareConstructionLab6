@@ -3,23 +3,24 @@
  */
 package twitter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Filter {
 
 
-    public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
-    	
-    	List<Tweet> result = new ArrayList<>(); 
-    	for (Tweet tweet : tweets) 
-    	{
-    		if (tweet.getAuthor().equalsIgnoreCase(username))
-    		{ 
-    			result.add(tweet); 
-    		}	
-    	} 
-    	return result;
-    }
+	public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
+	    List<Tweet> result = new ArrayList<>();
+	    for (int i = tweets.size() - 1; i >= 0; i--) {
+	        if (tweets.get(i).getAuthor().equalsIgnoreCase(username)) {
+	            result.add(tweets.get(i));
+	        }
+	    }
+	    Collections.reverse(result);  // to preserve the original order
+	    return result;
+	}
+
 
    
     public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {

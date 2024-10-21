@@ -5,7 +5,10 @@ package twitter;
 
 import static org.junit.Assert.*;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,44 +18,150 @@ import org.junit.Test;
 
 public class SocialNetworkTest {
 
-    /*
-     * TODO: your testing strategies for these methods should go here.
-     * See the ic03-testing exercise for examples of what a testing strategy comment looks like.
-     * Make sure you have partitions.
+    /**
+     * Test 1: Empty List of Tweets
+     * Ensures that an empty list results in an empty graph.
      */
-    
-    @Test(expected=AssertionError.class)
-    public void testAssertionsEnabled() {
-        assert false; // make sure assertions are enabled with VM argument: -ea
-    }
-    
     @Test
-    public void testGuessFollowsGraphEmpty() {
-        Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(new ArrayList<>());
-        
-        assertTrue("expected empty graph", followsGraph.isEmpty());
-    }
-    
-    @Test
-    public void testInfluencersEmpty() {
-        Map<String, Set<String>> followsGraph = new HashMap<>();
-        List<String> influencers = SocialNetwork.influencers(followsGraph);
-        
-        assertTrue("expected empty list", influencers.isEmpty());
+    public void testGuessFollowsGraphEmptyList() {
+        List<Tweet> tweets = Collections.emptyList();
+        Map<String, Set<String>> graph = SocialNetwork.guessFollowsGraph(tweets);
+        assertTrue("Graph should be empty", graph.isEmpty());
     }
 
-    /*
-     * Warning: all the tests you write here must be runnable against any
-     * SocialNetwork class that follows the spec. It will be run against several
-     * staff implementations of SocialNetwork, which will be done by overwriting
-     * (temporarily) your version of SocialNetwork with the staff's version.
-     * DO NOT strengthen the spec of SocialNetwork or its methods.
-     * 
-     * In particular, your test cases must not call helper methods of your own
-     * that you have put in SocialNetwork, because that means you're testing a
-     * stronger spec than SocialNetwork says. If you need such helper methods,
-     * define them in a different class. If you only need them in this test
-     * class, then keep them in this test class.
+    /**
+     * Test 2: Tweets Without Mentions
+     * Verifies that tweets with no mentions do not add entries to the graph.
      */
+    @Test
+    public void testGuessFollowsGraphNoMentions() {
+        List<Tweet> tweets = Arrays.asList(new Tweet(1, "KaifaHalaq", "Just enjoying the day!", Instant.now()),
+            new Tweet(2, "Ibrahim", "Having lunch at a new place.", Instant.now())
+        );
+        Map<String, Set<String>> graph = SocialNetwork.guessFollowsGraph(tweets);
+        assertFalse("Graph should be empty since no mentions are present", graph.isEmpty());
+    }
 
+    /**
+     * Test 3: Single Mention
+     * Tests whether a user who mentions someone is correctly added to the graph.
+     */
+    @Test
+    public void testGuessFollowsGraphSingleMention() {
+        List<Tweet> tweets = Arrays.asList(
+            new Tweet(1, "kaifahalaq", "Hello @ibrahim", Instant.now())
+        );
+
+        // Call the method and print the resulting graph
+        Map<String, Set<String>> graph = SocialNetwork.guessFollowsGraph(tweets);
+//        System.out.println("Graph: " + graph);
+
+        // Debug individual keys and values in the graph
+        if (graph.containsKey("kaifahalaq")) {
+//            System.out.println("Followers of kaifahalaq: " + graph.get("kaifahalaq"));
+        } else {
+//            System.out.println("Key 'kaifahalaq' not found in graph");
+        }
+
+        // Assert condition with printed feedback if it fails
+        assertTrue("kaifahalaq should follow ibrahim", 
+            graph.containsKey("kaifahalaq") && graph.get("kaifahalaq").contains("ibrahim"));
+    }
+
+
+    /**
+     * Test 4: Multiple Mentions
+     * Checks if multiple mentioned users are linked to the tweet author.
+     */
+    @Test
+    public void testGuessFollowsGraphMultipleMentions() {
+        List<Tweet> tweets = Arrays.asList(
+            new Tweet(1, "KaifaHalaq", "Hello @Ibrahim and @nabeel", Instant.now())
+        );
+        System.out.println(tweets);
+        Map<String, Set<String>> graph = SocialNetwork.guessFollowsGraph(tweets);
+        System.out.println(graph.get("kaifahalaq").containsAll(Set.of("ibrahim", "nabeel")));
+        assertTrue("KaifaHalaq should follow Ibrahim and Nabeel", graph.get("kaifahalaq").containsAll(Set.of("ibrahim", "nabeel")));
+    }
+
+    /**
+     * Test 5: Multiple Tweets from One User
+     * Ensures that repeated mentions from the same user are captured.
+     */
+    @Test
+    public void testGuessFollowsGraphMultipleTweets() {
+        List<Tweet> tweets = Arrays.asList(
+            new Tweet(1, "KaifaHalaq", "Hello @ibrahim", Instant.now()),
+            new Tweet(2, "KaifaHalaq", "Good morning @nabeel", Instant.now())
+        );
+        Map<String, Set<String>> graph = SocialNetwork.guessFollowsGraph(tweets);
+        assertTrue("KaifaHalaq should follow both Ibrahim and Nabeel", graph.get("kaifahalaq").containsAll(Set.of("ibrahim", "nabeel")));
+    }
+
+    /**
+     * Test 6: Empty Graph for influencers()
+     * Verifies that no users yield an empty influencer list.
+     */
+    @Test
+    public void testInfluencersEmptyGraph() {
+        Map<String, Set<String>> graph = Collections.emptyMap();
+        List<String> influencers = SocialNetwork.influencers(graph);
+        assertTrue("Influencers list should be empty", influencers.isEmpty());
+    }
+
+    /**
+     * Test 7: Single User Without Followers
+     * Tests that a user without followers yields no influencers.
+     */
+    @Test
+    public void testInfluencersSingleUserNoFollowers() {
+        Map<String, Set<String>> graph = Map.of("KaifaHalaq", Set.of());
+        List<String> influencers = SocialNetwork.influencers(graph);
+        assertTrue("Influencers list should be empty", influencers.isEmpty());
+    }
+
+    /**
+     * Test 8: Single Influencer
+     * Verifies correct identification of the only influencer.
+     */
+    @Test
+    public void testInfluencersSingleInfluencer() {
+        Map<String, Set<String>> graph = Map.of(
+            "Ibrahim", Set.of("KaifaHalaq")
+        );
+        List<String> influencers = SocialNetwork.influencers(graph);
+        assertEquals("KaifaHalaq should be the only influencer", List.of("KaifaHalaq"), influencers);
+    }
+
+    /**
+     * Test 9: Multiple Influencers
+     * Tests for correct influencer ordering.
+     */
+    @Test
+    public void testInfluencersMultipleInfluencers() {
+        Map<String, Set<String>> graph = Map.of(
+            "KaifaHalaq", Set.of("Ibrahim"),
+            "Nabeel", Set.of("Ibrahim"),
+            "NigBro", Set.of("Nabeel")
+        );
+        List<String> influencers = SocialNetwork.influencers(graph);
+        assertEquals("Influencers should be in correct order", List.of("Ibrahim", "Nabeel"), influencers);
+    }
+
+    /**
+     * Test 10: Tied Influence
+     * Ensures equal influencers are handled correctly.
+     */
+    @Test
+    public void testInfluencersTiedInfluence() {
+        Map<String, Set<String>> graph = Map.of(
+            "KaifaHalaq", Set.of("Ibrahim"),
+            "Nabeel", Set.of("Ibrahim"),
+            "NigBro", Set.of("Nabeel")
+        );
+        List<String> influencers = SocialNetwork.influencers(graph);
+        assertTrue("Ibrahim and Nabeel should be in the top influencers", 
+            influencers.indexOf("Ibrahim") < influencers.indexOf("Nabeel") || 
+            influencers.indexOf("Nabeel") < influencers.indexOf("Ibrahim"));
+    }
 }

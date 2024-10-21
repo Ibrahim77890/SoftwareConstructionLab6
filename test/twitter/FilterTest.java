@@ -58,8 +58,5 @@ public class FilterTest {
         assertEquals("expected same order", 0, containing.indexOf(tweet1));
     }
 
-   
-    
-    
 
 }
